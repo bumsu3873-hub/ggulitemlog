@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세꿀사 꿀템 모음</title>
+<meta name="description" content="세꿀사 쇼츠에 나온 제품을 번호로 바로 찾아보세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff7f9; --card:#ffffff; --ink:#2b2226; --sub:#8a7a80;
+    --pink:#f06d93; --pink-soft:#ffe4ec; --line:#f3dde4; --hl:#fff0b8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:480px;margin:0 auto;padding:0 16px 48px}
+  header{padding:28px 0 18px;text-align:center}
+  .logo{display:inline-block;background:var(--pink-soft);color:var(--pink);font-weight:800;font-size:13px;padding:5px 12px;border-radius:999px;margin-bottom:10px}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .lead{color:var(--sub);font-size:14px;margin-top:6px}
+  .search{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 12px}
+  .box{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--pink);border-radius:16px;padding:6px 6px 6px 16px;box-shadow:0 6px 18px rgba(240,109,147,.15)}
+  .box span{font-weight:800;color:var(--pink);font-size:18px}
+  .box input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:20px;font-weight:700;padding:10px 0;background:transparent;color:var(--ink)}
+  .box button{border:0;background:var(--pink);color:#fff;font:inherit;font-weight:700;font-size:15px;padding:12px 16px;border-radius:12px;cursor:pointer}
+  .hint{font-size:12px;color:var(--sub);margin-top:8px;text-align:center}
+  .notice{font-size:12px;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:4px 0 16px;line-height:1.5}
+  .found{display:none;margin-bottom:18px}
+  .found.on{display:block}
+  .found .item{border:2px solid var(--pink);background:#fffafb}
+  .found-label{font-size:13px;font-weight:700;color:var(--pink);margin-bottom:8px}
+  .empty{display:none;text-align:center;color:var(--sub);font-size:14px;padding:14px;background:var(--card);border-radius:12px;margin-bottom:18px}
+  .empty.on{display:block}
+  .list-title{font-size:14px;font-weight:700;color:var(--sub);margin:6px 2px 10px}
+  .item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+  .num{flex:0 0 auto;width:46px;height:46px;border-radius:12px;background:var(--pink-soft);color:var(--pink);font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center}
+  .body{flex:1;min-width:0}
+  .name{font-size:14px;font-weight:500;line-height:1.45;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .buy{display:inline-block;margin-top:8px;background:var(--pink);color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:7px 14px;border-radius:999px}
+  .item.flash{background:var(--hl)}
+  footer{text-align:center;color:var(--sub);font-size:12px;margin-top:24px}
+  footer a{color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">세꿀사 · by 하링이</div>
+    <h1>영상 속 꿀템 바로 찾기</h1>
+    <p class="lead">쇼츠에 나온 번호를 입력하면 바로 구매 페이지로 연결돼요</p>
+  </header>
+
+  <div class="search">
+    <form class="box" id="form">
+      <span>No.</span>
+      <input id="q" type="text" inputmode="numeric" placeholder="번호 입력 (예: 52)" autocomplete="off">
+      <button type="submit">찾기</button>
+    </form>
+  </div>
+
+  <p class="notice">이 페이지의 링크는 네이버 쇼핑 커넥트 링크로, 구매 시 일정 수수료를 받을 수 있습니다.</p>
+
+  <div class="found" id="found">
+    <p class="found-label">찾으시는 제품이에요</p>
+    <div id="foundItem"></div>
+  </div>
+  <p class="empty" id="empty">해당 번호의 제품이 없어요. 번호를 다시 확인해 주세요.</p>
+
+  <p class="list-title">전체 꿀템 (최신순)</p>
+  <div id="list"></div>
+
+  <footer>
+    더 자세한 후기는 <a href="https://blog.naver.com/haring7743" target="_blank" rel="noopener">세꿀사 블로그</a>에서 볼 수 있어요
+  </footer>
+</div>
+
+<script>
+// 새 제품은 맨 아래에 한 줄 추가하면 번호가 자동으로 붙습니다.
+const items = [
+  ["아누아 PDRN 히알루론산 캡슐 세럼 1+1 기획 구성", "https://naver.me/xiLB8XL7"],
+  ["아누아 PDRN 히알루론산 콜라겐 넥크림 1+1", "https://naver.me/5eDP96Ws"],
+  ["프로쉬 세탁세제 1.5L 알로에베라 3개 세트", "https://naver.me/IGsbwDmZ"],
+  ["더후 공진향 궁중 3종 세트 보자기포장", "https://naver.me/GkIC57uQ"],
+  ["미닉스 음식물 처리기 더플렌더 MAX 3L MNFD-200G", "https://naver.me/GFsdpoZT"],
+  ["갤럭시탭 S12 울트라 WiFi 256GB 그레이 SM-X940", "https://naver.me/Gxre6P1r"],
+  ["말코닉 X64 SD 싱글도즈 커피 그라인더", "https://naver.me/Ge7XNEtZ"],
+  ["안방그릴 맥스 시즌7 하프돔 전기그릴 AB1201MF", "https://naver.me/F4WAo8Mp"],
+  ["가벼운 여성 경량 나일론 방수 백팩", "https://naver.me/IIDK79Tt"],
+  ["베이직스 베이직북 16인치 16GB 512GB 노트북", "https://naver.me/Gxreao7y"],
+  ["코닥 포토프린터 필름카메라 미니샷 3 레트로 C300R 38매 번들", "https://naver.me/GWWssSPz"],
+  ["디베아 무선청소기 ONE STEP 클린스테이션", "https://naver.me/x3c44k2v"],
+  ["디베아 무선청소기 얼티마 싱크 클린스테이션", "https://naver.me/GP2WW0fY"],
+  ["크리썸 칫솔살균기 무선 UV 벽걸이형", "https://naver.me/FbV1l1Bc"],
+  ["홀츠클로츠 전동 커피 그라인더 E80", "https://naver.me/FAAfvfL1"],
+  ["볼티움 골전도 블루투스 운동용 이어폰 아쿠아본X", "https://naver.me/FZoZUxr2"],
+  ["멜리언스 진동클렌저 실리콘 전동 세안기", "https://naver.me/x3c7N4SX"],
+  ["닥터지 블랙 스네일 크림 50mL 골라담기", "https://naver.me/FSvoWYfr"],
+  ["토리든 다이브인 저분자 히알루론산 크림 더블 기획세트", "https://naver.me/GWWYsSG3"],
+  ["아누아 어성초 77 B3징크 트러블 진정 세럼 1+1", "https://naver.me/5imHoNYl"],
+  ["벨로즈 세라믹 도자기 하트 괄사 마사지기", "https://naver.me/I5whqXX1"],
+  ["센텔리안24 마데카크림 타임리버스 제로 총 300ml 구성", "https://naver.me/xaTHAQG2"],
+  ["메디큐브 에이지알 부스터 프로 글루타치온 앰플 3개 세트", "https://naver.me/52aNSg18"],
+  ["메디큐브 에이지알 부스터 프로 블랙 뷰티디바이스", "https://naver.me/Ix0znvTS"],
+  ["메디큐브 하이포커스샷 플러스 윤곽초음파 얼굴마사지기", "https://naver.me/51uiegPb"],
+  ["비디비치 블랙 퍼펙션 커버 핏 쿠션 본품 13g", "https://naver.me/FaeKtWlc"],
+  ["유닉스 헤어 고데기 UCI-A2521N 세라믹 판고데기", "https://naver.me/xqbIhKUi"],
+  ["메디힐 PDRN 모공 탄력 세럼 40ml+40ml 기획", "https://naver.me/Ffs1q6Dk"],
+  ["정샘물 스킨 누더 커버레이어 쿠션 21 엔라이트", "https://naver.me/F05LmIyK"],
+  ["이니스프리 그린티 씨드 히알루론산 수분크림 80ml 더블", "https://naver.me/xzH5QZo7"],
+  ["한일의료기 전자파없는 전기장판 27년형 온열매트", "https://naver.me/G0pAIQPX"],
+  ["클리오 초밀착 킬커버 파운웨어 쿠션 기획 세트", "https://naver.me/F6QfJEcL"],
+  ["설화수 NEW 자정 2종 기획세트", "https://naver.me/Ge7t3zHs"],
+  ["듀플렉스 무드등 초음파 통세척 가습기 3.5L DP-G50UH", "https://naver.me/5XcuBvCs"],
+  ["아비브 어성초 흔적 에센스 패드 클리어터치 70매 리필 기획", "https://naver.me/F8l9A1M5"],
+  ["스파오 소프트얀 여성 라운드넥 카디건 SPCKG49W01", "https://naver.me/5p0mRBA6"],
+  ["스파오 여성 후드 푸퍼 숏패딩 SPJPG4TG12", "https://naver.me/xZKLl5nX"],
+  ["쏘내추럴 올 데이 메이크업 픽서 120ml 1+1", "https://naver.me/FaeGHBIk"],
+  ["아이오페 NEW 6세대 슈퍼바이탈 2종 기획세트", "https://naver.me/58qGGODh"],
+  ["헬스헬퍼 맥스컷 프로 크롬 4개 세트", "https://naver.me/539hhQqT"],
+  ["찰스앤키스 찬스 턴락 버킷백 CK2-10701618", "https://naver.me/x2YCRXhE"],
+  ["이오에이 풀텐자 모공지우개 RF고주파 EMS 디바이스", "https://naver.me/xNpcFw4S"],
+  ["센텔리안24 마데카크림 올뉴 타이트리프팅 크림 세트", "https://naver.me/51u2lnRX"],
+  ["레노덤 데이 롱 비비크림 글로우 21호", "https://naver.me/xHEd3Wen"],
+  ["뉴트로지나 인텐스 리페어 시카 에멀젼 바디로션 988ml", "https://naver.me/xm0cTfwg"],
+  ["니베아 SOS 리페어 앤 케어 바디로션 400ml 3개", "https://naver.me/GhwDsAJQ"],
+  ["닥터지 더모이스처 배리어.D 인텐스 크림 100ml 2개", "https://naver.me/F93RTssG"],
+  ["비트 캡슐세제 울트라콤팩트 실내건조 40입 2개", "https://naver.me/Fetna7fE"],
+  ["LG 프라엘 써마샷 얼티밋 고주파 디바이스", "https://naver.me/xaTMoxZT"],
+  ["케어팟 큐브 프로 X55V 저온가열 가습기", "https://naver.me/51uUyyMe"],
+  ["JMW M5001A PLUS PRO 터보 항공모터 드라이기", "https://naver.me/GvWP1aHB"],
+  ["라운드랩 자작나무 수분 선크림 50ml 더블 선세럼 기획", "https://naver.me/F6QGCme0"],
+  ["클리오 킬커버 메쉬 글로우 에센셜 쿠션 기획세트", "https://naver.me/FTdxAnmk"]
+];
+
+const card = (n, [name, url]) => `
+  <div class="item" id="item-${n}">
+    <div class="num">${n}</div>
+    <div class="body">
+      <p class="name">${name}</p>
+      <a class="buy" href="${url}" target="_blank" rel="noopener">구매하러 가기 →</a>
+    </div>
+  </div>`;
+
+const list = document.getElementById('list');
+list.innerHTML = items.map((it, i) => card(i + 1, it)).reverse().join('');
+
+const found = document.getElementById('found');
+const foundItem = document.getElementById('foundItem');
+const empty = document.getElementById('empty');
+const q = document.getElementById('q');
+
+function lookup(v) {
+  const n = parseInt(String(v).replace(/[^0-9]/g, ''), 10);
+  found.classList.remove('on'); empty.classList.remove('on');
+  if (!n) return;
+  if (n >= 1 && n <= items.length) {
+    foundItem.innerHTML = card(n, items[n - 1]);
+    found.classList.add('on');
+  } else {
+    empty.classList.add('on');
+  }
+}
+
+document.getElementById('form').addEventListener('submit', e => {
+  e.preventDefault(); lookup(q.value); q.blur();
+});
+q.addEventListener('input', () => lookup(q.value));
+
+// 주소 끝에 #52 를 붙이면 52번이 바로 표시됩니다.
+if (location.hash) { q.value = location.hash.slice(1); lookup(q.value); }
+</script>
+</body>
+</html>
