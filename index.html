@@ -42,6 +42,8 @@
   footer{text-align:center;color:var(--sub);font-size:12px;margin-top:24px}
   footer a{color:var(--pink)}
 </style>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -171,6 +173,14 @@ q.addEventListener('input', () => lookup(q.value));
 
 // 주소 끝에 #52 를 붙이면 52번이 바로 표시됩니다.
 if (location.hash) { q.value = location.hash.slice(1); lookup(q.value); }
+
+// 방문자 분석: 어떤 번호의 구매 버튼을 눌렀는지 기록합니다.
+document.addEventListener('click', e => {
+  const a = e.target.closest('a.buy');
+  if (!a) return;
+  const n = a.closest('.item').id.replace('item-', '');
+  window.va('event', { name: '구매 클릭', data: { 번호: n, 제품: items[n - 1][0] } });
+});
 </script>
 </body>
 </html>
