@@ -162,15 +162,21 @@ def main():
                        "selfDeclaredMadeForKids": False,
                        "containsSyntheticMedia": cfg["synthetic_media"]},
         }
-        req = yt.videos().insert(part="snippet,status", body=body,
-                                 media_body=MediaFileUpload(str(v), chunksize=-1, resumable=True))
+        media = MediaFileUpload(str(v), chunksize=-1, resumable=True)
+        req = yt.videos().insert(part="snippet,status", body=body, media_body=media)
         resp = None
-        while resp is None:
-            _, resp = req.next_chunk()
+        try:
+            while resp is None:
+                _, resp = req.next_chunk()
+        finally:
+            media.stream().close()  # 파일을 닫아야 done 폴더로 옮길 수 있다
         print(f"  완료: https://youtube.com/shorts/{resp['id']}")
         done = QUEUE / "done"
         done.mkdir(exist_ok=True)
-        shutil.move(str(v), str(done / v.name))
+        try:
+            shutil.move(str(v), str(done / v.name))
+        except OSError as e:
+            print(f"  (업로드는 끝났지만 파일을 done으로 옮기지 못했어요. 직접 옮겨 주세요: {e})")
 
 
 if __name__ == "__main__":
