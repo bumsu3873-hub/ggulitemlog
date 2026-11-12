@@ -1,5 +1,7 @@
 {
-  "slots": ["12:00", "19:00"],
+  "slots": [
+    "19:00"
+  ],
   "category_id": "26",
   "synthetic_media": true
 }
