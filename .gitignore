@@ -2,3 +2,4 @@ kits/
 upload-queue/
 tools/youtube/client_secret.json
 tools/youtube/token.json
+__pycache__/
