@@ -49,6 +49,7 @@ def main():
         views = int(stt.get("viewCount", 0))
         age = (now - pub).total_seconds() / 86400
         rows.append({
+            "id": v["id"],
             "올린시각": pub.strftime("%Y-%m-%d %H:%M"),
             "요일": DAYS[pub.weekday()],
             "시": pub.hour,
@@ -68,6 +69,18 @@ def main():
         w.writeheader()
         w.writerows(rows)
 
+    # 매시간 기록을 한 파일에 쌓는다 → '올린 지 24시간 뒤 조회수'를 나중에 찾을 수 있다
+    hist = OUT / "조회수기록.csv"
+    new = not hist.exists()
+    with open(hist, "a", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["기록시각", "id", "올린시각", "올린지_시간", "조회수", "좋아요", "제목"])
+        for r in rows:
+            if r["상태"] == "public":
+                w.writerow([now.strftime("%Y-%m-%d %H:%M"), r["id"], r["올린시각"],
+                            round(r["경과일"] * 24, 1), r["조회수"], r["좋아요"], r["제목"]])
+
     pub_rows = [r for r in rows if r["상태"] == "public" and r["경과일"] >= 1]
     for label, key in (("시간대", "시"), ("요일", "요일")):
         print(f"\n[{label}별 조회수 중앙값]")
@@ -81,4 +94,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback
+        OUT.mkdir(exist_ok=True)
+        with open(OUT / "오류.log", "a", encoding="utf-8") as f:
+            f.write(f"\n[{dt.datetime.now(KST):%Y-%m-%d %H:%M}]\n{traceback.format_exc()}")
+        raise
